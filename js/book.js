@@ -79,6 +79,7 @@ var createSQL = 'CREATE TABLE IF NOT EXISTS Contacts (' +
         'lastname TEXT,' +                  
         'firstname TEXT,' +
         'email TEXT' +
+        'phone TEXT' +
     ')';
 
 // Check if this browser supports Web SQL
@@ -129,10 +130,10 @@ function dispResults() {
         db.readTransaction(function(t) {    // readTransaction sets the database to read-only
             t.executeSql('SELECT * FROM Contacts ORDER BY LOWER(lastname)', [], function(t, r) {
                 var bwt = new table();
-                bwt.setHeader(['Surname', 'Name', 'Email', '']);
+                bwt.setHeader(['Surname', 'Name', 'Email', 'Phone', '']);
                 for( var i = 0; i < r.rows.length; i++ ) {
                     var row = r.rows.item(i);
-                    bwt.addRow([row.lastname, row.firstname, row.email, rowButtons(row.id, row.lastname)]);
+                    bwt.addRow([row.lastname, row.firstname, row.email, row.phone, rowButtons(row.id, row.lastname)]);
                 }
                 element('contacts').innerHTML = bwt.getTableHTML();
             });
@@ -142,10 +143,10 @@ function dispResults() {
     db.readTransaction(function(t) {    // readTransaction sets the database to read-only
         t.executeSql("SELECT * FROM Contacts WHERE lastname LIKE '%" + searchString + "%' OR firstname LIKE '%" + searchString + "%' OR email LIKE '%" + searchString + "%'"  , [], function(t, r) {
             var bwt = new table();
-            bwt.setHeader(['Surname', 'Name', 'Email', '']);
+            bwt.setHeader(['Surname', 'Name', 'Email', 'Phone', '']);
             for( var i = 0; i < r.rows.length; i++ ) {
                 var row = r.rows.item(i);
-                bwt.addRow([row.lastname, row.firstname, row.email, rowButtons(row.id, row.lastname)]);
+                bwt.addRow([row.lastname, row.firstname, row.email, row.phone, rowButtons(row.id, row.lastname)]);
             }
             element('contacts').innerHTML = bwt.getTableHTML();
             $('div#contacts').highlight(searchString);
@@ -162,24 +163,25 @@ function dbGo() {
     var lastname = f.elements['lastname'].value;
     var firstname = f.elements['firstname'].value;
     var email = f.elements['email'].value;
+    var phone = f.elements['phone'].value;
     var key = f.elements['key'].value;
 
     switch(action) {
     case 'add': 
         if(! (lastname || firstname || email)) break;
         db.transaction( function(t) {
-            t.executeSql(' INSERT INTO Contacts ( lastname, firstname, email ) VALUES ( ?, ?, ? ) ',
-                [ lastname, firstname, email ]
+            t.executeSql(' INSERT INTO Contacts ( lastname, firstname, email, phone ) VALUES ( ?, ?, ?, ? ) ',
+                [ lastname, firstname, email, phone ]
             );
         }, function(t, e){ alert('Insert row: ' + e.message); }, function() {
             resetContForm();
         }); 
         break;
     case 'update':
-        if(! (lastname || firstname || email)) break;
+        if(! (lastname || firstname || email || phone)) break;
         db.transaction( function(t) {
-            t.executeSql(' UPDATE Contacts SET lastname = ?, firstname = ?, email = ? WHERE id = ?',
-                [ lastname, firstname, email, key ]
+            t.executeSql(' UPDATE Contacts SET lastname = ?, firstname = ?, email = ?, phone = ? WHERE id = ?',
+                [ lastname, firstname, email, phone, key ]
             );
         }, function(t, e){ alert('Update row: ' + e.message); }, function() {
             resetContForm();
@@ -199,6 +201,7 @@ function editGo(id) {
                 f.elements['lastname'].value = row.lastname;
                 f.elements['firstname'].value = row.firstname;
                 f.elements['email'].value = row.email;
+                f.elements['phone'].value = row.phone;
                 f.elements['goButton'].value = 'Update';
                 f.elements['inputAction'].value = 'update';
                 f.elements['key'].value = row.id;
@@ -222,7 +225,7 @@ function deleteGo(id, lastname) {
 // clear all the form fields and reset the button and action elements
 function resetContForm() {
     var f = element('contForm');
-    for( var n in [ 'lastname', 'firstname', 'email', 'key' ] ) {
+    for( var n in [ 'lastname', 'firstname', 'email', 'phone', 'key' ] ) {
         f.elements[n].value = '';
     }
     f.elements['inputAction'].value = 'add';
