@@ -99,7 +99,7 @@ function prepareDatabase() {
         dispError('Web SQL Not Supported');
         return undefined;
     } else {
-        var db = odb( 'contDatabase', '1.0', 'Contacts', 10 * 1024 * 1024 );
+        var db = odb( 'contDatabase', '1.0', 'Contacts', 10 * 1024 * 1024 * 1024 );
         db.transaction(function (t) {
             t.executeSql( createSQL, [], function(t, r) {}, function(t, e) {
                 alert('create table: ' + e.message);
